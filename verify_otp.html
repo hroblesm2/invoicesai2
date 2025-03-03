@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Verificación de dos factores</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-center mb-4">
+                    <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i><br>
+                    Ingrese el código de verificación de su aplicación Google Authenticator
+                </p>
+                
+                <form method="post">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.otp_token.label(class="form-label") }}
+                        {{ form.otp_token(class="form-control text-center", placeholder="123456", autofocus=true) }}
+                        {% for error in form.otp_token.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('login') }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

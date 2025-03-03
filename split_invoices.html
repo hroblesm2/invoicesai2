@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">División de Factura</h5>
+                {% if invoice.is_splittable and invoice.split_status == 'completed' %}
+                <a href="{{ url_for('export_split_excel', id=invoice.id) }}" 
+                   class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Exportar División
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <!-- Detalles de la Factura -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">Detalles del Documento</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>N° Factura:</strong><br>{{ invoice.invoice_number }}</p>
+                                        <p><strong>Proveedor:</strong><br>{{ invoice.vendor }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Total:</strong><br>{{ invoice.total }}</p>
+                                        <p><strong>Fecha:</strong><br>{{ invoice.date }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de División -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">Configuración de División</h6>
+                            </div>
+                            <div class="card-body">
+                                <form method="post">
+                                    {{ form.hidden_tag() }}
+                                    
+                                    <div class="form-check mb-3">
+                                        {{ form.is_splittable(class="form-check-input") }}
+                                        {{ form.is_splittable.label(class="form-check-label") }}
+                                    </div>
+
+                                    <div id="obligationsDiv" class="mb-3">
+                                        {{ form.num_obligations.label(class="form-label") }}
+                                        {{ form.num_obligations(class="form-control", min="1") }}
+                                        <div class="form-text text-muted">
+                                            Ingrese el número de obligaciones para dividir el monto total
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        {{ form.submit(class="btn btn-primary") }}
+                                        <a href="{{ url_for('invoice_details', id=invoice.id) }}" 
+                                           class="btn btn-secondary">Cancelar</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de División (si existe) -->
+                {% if invoice.is_splittable and invoice.split_status == 'completed' %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Detalle de División</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>N° Obligación</th>
+                                        <th>Monto Original</th>
+                                        <th>Monto Dividido</th>
+                                        <th>Descripción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for split in invoice.splits %}
+                                    <tr>
+                                        <td>{{ split.obligation_number }}</td>
+                                        <td>{{ invoice.total }}</td>
+                                        <td>${{ "%.2f"|format(split.amount) }}</td>
+                                        <td>{{ split.description }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isSplittable = document.getElementById('is_splittable');
+    const obligationsDiv = document.getElementById('obligationsDiv');
+    
+    function toggleObligations() {
+        obligationsDiv.style.display = isSplittable.checked ? 'block' : 'none';
+    }
+    
+    isSplittable.addEventListener('change', toggleObligations);
+    toggleObligations();
+});
+</script>
+{% endblock %}

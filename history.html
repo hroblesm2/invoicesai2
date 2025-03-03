@@ -1,0 +1,136 @@
+{# templates/history.html #}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Historial de Documentos</h5>
+            <div class="btn-group">
+                <a href="{{ url_for('export_excel') }}" class="btn btn-success">
+                    <i class="fas fa-file-excel me-2"></i>Exportar Excel
+                </a>
+                <a href="{{ url_for('export_csv') }}" class="btn btn-info">
+                    <i class="fas fa-file-csv me-2"></i>Exportar CSV
+                </a>
+            </div>
+        </div>
+        
+        <!-- Filtros -->
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                {{ form.search_query.label(class="form-label") }}
+                {{ form.search_query(class="form-control") }}
+            </div>
+            <div class="col-md-2">
+                {{ form.date_from.label(class="form-label") }}
+                {{ form.date_from(class="form-control", type="date") }}
+            </div>
+            <div class="col-md-2">
+                {{ form.date_to.label(class="form-label") }}
+                {{ form.date_to(class="form-control", type="date") }}
+            </div>
+            <div class="col-md-2">
+                {{ form.amount_min.label(class="form-label") }}
+                {{ form.amount_min(class="form-control", type="number", step="0.01") }}
+            </div>
+            <div class="col-md-2">
+                {{ form.amount_max.label(class="form-label") }}
+                {{ form.amount_max(class="form-control", type="number", step="0.01") }}
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Filtrar
+                </button>
+                <a href="{{ url_for('history') }}" class="btn btn-secondary">
+                    <i class="fas fa-undo me-2"></i>Limpiar Filtros
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body">
+        {% if invoices %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>N° Factura</th>
+                        <th>Archivo</th>
+                        <th>Proveedor</th>
+                        <th>Dirección</th>
+                        <th>Total</th>
+                        <th>Impuestos</th>
+                        <th>Fecha</th>
+                        <th>Método Pago</th>
+                        <th>Productos/Servicios</th>
+                        <th>Acciones</th>
+                        <th>Estado División</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td>{{ invoice.id }}</td>
+                        <td>{{ invoice.invoice_number }}</td>
+                        <td>{{ invoice.filename }}</td>
+                        <td>{{ invoice.vendor }}</td>
+                        <td>{{ invoice.vendor_address }}</td>
+                        <td>{{ invoice.total }}</td>
+                        <td>{{ invoice.tax }}</td>
+                        <td>{{ invoice.date }}</td>
+                        <td>{{ invoice.payment_method }}</td>
+                        <td>{{ invoice.items }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('edit_invoice', id=invoice.id) }}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                                <a href="{{ url_for('invoice_details', id=invoice.id) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Ver
+                                </a>
+                                <a href="{{ url_for('split_invoice', id=invoice.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-cut"></i> Dividir
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            {% if invoice.is_splittable %}
+                                {% if invoice.split_status == 'completed' %}
+                                    <span class="badge bg-success">Dividida</span>
+                                {% elif invoice.split_status == 'pending' %}
+                                    <span class="badge bg-warning">Pendiente</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No Dividida</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            No se encontraron documentos con los filtros especificados.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mantener los valores de los filtros después de la búsqueda
+    const urlParams = new URLSearchParams(window.location.search);
+    for (const [key, value] of urlParams) {
+        const element = document.querySelector(`[name="${key}"]`);
+        if (element) {
+            element.value = value;
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,173 @@
+{# templates/index.html #}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Cargar Documentos</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.upload_type.label(class="form-label") }}
+                        {{ form.upload_type(class="form-select", id="uploadType") }}
+                    </div>
+
+                    <div id="single-upload" class="mb-3">
+                        {{ form.invoice.label(class="form-label") }}
+                        {{ form.invoice(class="form-control", onchange="previewFile(this)") }}
+                        <small class="form-text text-muted">Seleccione un documento PDF o imagen</small>
+                    </div>
+
+                    <div id="batch-upload" class="mb-3" style="display: none;">
+                        {{ form.batch_files.label(class="form-label") }}
+                        {{ form.batch_files(class="form-control", multiple="multiple") }}
+                    </div>
+
+                    {{ form.submit(class="btn btn-primary mt-3") }}
+                </form>
+            </div>
+        </div>
+
+        {% if extracted_data %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title">Datos Extraídos</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">N° Factura</label>
+                            <input type="text" class="form-control" value="{{ extracted_data.invoice_number }}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Proveedor</label>
+                            <input type="text" class="form-control" value="{{ extracted_data.vendor }}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" class="form-control" value="{{ extracted_data.vendor_address }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Total</label>
+                            <input type="text" class="form-control" value="{{ extracted_data.total }}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Impuestos</label>
+                            <input type="text" class="form-control" value="{{ extracted_data.tax }}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Método de Pago</label>
+                            <input type="text" class="form-control" value="{{ extracted_data.payment_method }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Fecha</label>
+                    <input type="text" class="form-control" value="{{ extracted_data.date }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Productos/Servicios</label>
+                    <textarea class="form-control" rows="3" readonly>{{ extracted_data.items }}</textarea>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6" id="preview-section">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Vista Previa del Documento</h5>
+            </div>
+            <div class="card-body">
+                <div id="preview-container" class="text-center">
+                    <div id="preview-placeholder" class="text-muted">
+                        <i class="fas fa-file fa-3x mb-2"></i>
+                        <p>La vista previa aparecerá aquí para documentos individuales</p>
+                    </div>
+                    {% if preview_url %}
+                    <div id="preview-content">
+                        {% if preview_url.endswith('.pdf') %}
+                        <embed src="{{ preview_url }}" type="application/pdf" width="100%" height="600px">
+                        {% else %}
+                        <img src="{{ preview_url }}" class="img-fluid" alt="Vista previa del documento">
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadType = document.querySelector('#uploadType');
+    const singleUpload = document.querySelector('#single-upload');
+    const batchUpload = document.querySelector('#batch-upload');
+    const previewSection = document.querySelector('#preview-section');
+    const batchFiles = document.querySelector('#batchFiles');
+    const selectedFiles = document.querySelector('#selected-files');
+
+    function toggleUploadFields() {
+        const isSingle = uploadType.value === 'single';
+        singleUpload.style.display = isSingle ? 'block' : 'none';
+        batchUpload.style.display = isSingle ? 'none' : 'block';
+        previewSection.style.display = isSingle ? 'block' : 'none';
+    }
+
+    uploadType.addEventListener('change', toggleUploadFields);
+    toggleUploadFields();
+
+    // Mostrar archivos seleccionados para carga masiva
+    batchFiles.addEventListener('change', function() {
+        selectedFiles.innerHTML = '<p><strong>Archivos seleccionados:</strong></p>';
+        const list = document.createElement('ul');
+        Array.from(this.files).forEach(file => {
+            const li = document.createElement('li');
+            li.textContent = file.name;
+            list.appendChild(li);
+        });
+        selectedFiles.appendChild(list);
+    });
+});
+
+function previewFile(input) {
+    if (input.files && input.files[0]) {
+        const previewContainer = document.getElementById('preview-container');
+        const previewPlaceholder = document.getElementById('preview-placeholder');
+        const file = input.files[0];
+
+        if (previewPlaceholder) {
+            previewPlaceholder.style.display = 'none';
+        }
+
+        if (file.type === 'application/pdf') {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewContainer.innerHTML = `
+                    <embed src="${e.target.result}" type="application/pdf" width="100%" height="600px">
+                `;
+            };
+            reader.readAsDataURL(file);
+        } else if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewContainer.innerHTML = `
+                    <img src="${e.target.result}" class="img-fluid" alt="Vista previa del documento">
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+}
+</script>
+{% endblock %}

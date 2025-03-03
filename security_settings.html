@@ -1,0 +1,87 @@
+{# templates/security_settings.html #}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Configuración de Seguridad</h5>
+    </div>
+    <div class="card-body">
+        <h6 class="mb-4">Autenticación de dos factores (2FA)</h6>
+        
+        {% if current_user.otp_enabled %}
+            <!-- 2FA ya está activado -->
+            <div class="alert alert-success mb-4">
+                <i class="fas fa-check-circle me-2"></i>
+                La autenticación de dos factores está activada para tu cuenta.
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Desactivar autenticación de dos factores</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        Si desactivas la autenticación de dos factores, tu cuenta será menos segura.
+                        Asegúrate de que quieres realizar esta acción.
+                    </p>
+                    
+                    <form method="post">
+                        {{ disable_form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ disable_form.otp_token.label(class="form-label") }}
+                            {{ disable_form.otp_token(class="form-control", placeholder="123456") }}
+                        </div>
+                        {{ disable_form.submit(class="btn btn-danger") }}
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <!-- 2FA no está activado -->
+            <div class="alert alert-warning mb-4">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                La autenticación de dos factores no está activada para tu cuenta.
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Activar autenticación de dos factores</h6>
+                </div>
+                <div class="card-body">
+                    <ol class="mb-4">
+                        <li class="mb-2">Descarga la aplicación Google Authenticator en tu dispositivo móvil
+                            <div class="mt-1">
+                                <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" 
+                                   class="btn btn-sm btn-outline-secondary me-2" target="_blank">
+                                    <i class="fab fa-google-play me-1"></i> Android
+                                </a>
+                                <a href="https://apps.apple.com/app/google-authenticator/id388497605" 
+                                   class="btn btn-sm btn-outline-secondary" target="_blank">
+                                    <i class="fab fa-apple me-1"></i> iOS
+                                </a>
+                            </div>
+                        </li>
+                        <li class="mb-2">Escanea el código QR con la aplicación</li>
+                        <li class="mb-2">Ingresa el código de verificación generado por la aplicación</li>
+                    </ol>
+                    
+                    {% if qr_code %}
+                        <div class="text-center mb-4">
+                            <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {{ enable_form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ enable_form.otp_token.label(class="form-label") }}
+                            {{ enable_form.otp_token(class="form-control", placeholder="123456") }}
+                        </div>
+                        {{ enable_form.submit(class="btn btn-primary") }}
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

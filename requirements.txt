@@ -1,0 +1,8 @@
+Flask
+Flask-WTF
+Flask-SQLAlchemy
+Celery
+redis
+azure-ai-formrecognizer
+Werkzeug
+python-dotenv

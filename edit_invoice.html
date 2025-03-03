@@ -1,0 +1,89 @@
+{# templates/edit_invoice.html #}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Editar Documento</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.vendor.label(class="form-label") }}
+                            {{ form.vendor(class="form-control") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.invoice_number.label(class="form-label") }}
+                            {{ form.invoice_number(class="form-control") }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.total.label(class="form-label") }}
+                            {{ form.total(class="form-control") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.date.label(class="form-label") }}
+                            {{ form.date(class="form-control") }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.vendor_address.label(class="form-label") }}
+                        {{ form.vendor_address(class="form-control") }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.items.label(class="form-label") }}
+                        {{ form.items(class="form-control", rows="4") }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.tax.label(class="form-label") }}
+                            {{ form.tax(class="form-control") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.payment_method.label(class="form-label") }}
+                            {{ form.payment_method(class="form-control") }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('history') }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Vista Previa del Documento</h5>
+            </div>
+            <div class="card-body">
+                {% if preview_url %}
+                    {% if preview_url.endswith('.pdf') %}
+                        <embed src="{{ preview_url }}" type="application/pdf" width="100%" height="600px">
+                    {% else %}
+                        <img src="{{ preview_url }}" class="img-fluid" alt="Vista previa del documento">
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-file fa-3x mb-3"></i>
+                        <p>Vista previa no disponible</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
